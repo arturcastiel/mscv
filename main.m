@@ -7,6 +7,12 @@
 %  Clear all variables previously intializied
 %  Declare all global variables to be used in the code
 
+nameFile = 'start_spe.dat';
+prepareStart
+
+
+
+
 clear all
 clc
 
