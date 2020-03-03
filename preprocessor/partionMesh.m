@@ -5,8 +5,8 @@ LengX = PPP(1);
 LengY = PPP(2);
 %% config aqui
 %6 e 17
-numX = 5;
-numY = 5;
+numX = 6;
+numY = 8;
 
 % for a hexagonal mesh
 Side = 0.125/2;
@@ -16,7 +16,7 @@ BB = sin(pi/6) * Side;
 
 
 % [ 1 - SQUARE 2 - HEXAGON 3 Hexagon Real ]
-meshPolygon = 1;
+meshPolygon = 3;
 
 if meshPolygon == 1
     
@@ -105,7 +105,7 @@ listTest2 = drawSquare(0.5,0.5,0.1,0.1,-45,4000,2);
 %npar esta calculado errado
 
 
-elemloc = isBar(centelem(:,1),centelem(:,2),listas{:},listTest1);%,listTest1);%;,listas{:},listTest1);%,listTest1)%,listTest1,listTest2); % ,listTest1,listTest2);%,listTest1);%,listTest1)%,listTest2,listTest3,listTest4);
+elemloc = isBar(centelem(:,1),centelem(:,2),listas{:});%,listTest1);%,listTest1);%;,listas{:},listTest1);%,listTest1)%,listTest1,listTest2); % ,listTest1,listTest2);%,listTest1);%,listTest1)%,listTest2,listTest3,listTest4);
 elemloc = fixNumb(elemloc);
 
 npar = max(elemloc);

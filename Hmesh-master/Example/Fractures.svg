@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+    xmlns:latexdraw="http://latexdraw.sourceforge.net/namespaces/latexdraw"
+    version="1.1" baseProfile="full">
+    <defs/>
+    <g>
+        <g latexdraw:type="square" id="id222">
+            <rect x="7.0" y="7.0" width="512.0" height="512.0"
+                latexdraw:borderPos="outer" stroke-width="2.0"
+                stroke="white" fill="#cccccc"/>
+        </g>
+        <g latexdraw:type="rectangle" id="id223" transform="rotate(111.07176352686466) translate(-352.41196348409767 -727.8812234782187)">
+            <rect x="297.0" y="236.0" width="258.0" height="14.0"
+                latexdraw:borderPos="outer" stroke-width="2.0"
+                stroke="#666666" fill="#666666"/>
+        </g>
+        <g latexdraw:type="rectangle" id="id224">
+            <rect x="34.0" y="366.0" width="258.0" height="14.0"
+                latexdraw:borderPos="outer" stroke-width="2.0"
+                stroke="#666666" fill="#666666"/>
+        </g>
+        <g latexdraw:type="rectangle" id="id225" transform="rotate(-15.137468397131846) translate(-130.54289666587346 76.46278167231901)">
+            <rect x="224.0" y="446.0" width="258.0" height="14.0"
+                latexdraw:borderPos="outer" stroke-width="2.0"
+                stroke="#666666" fill="#666666"/>
+        </g>
+        <g latexdraw:type="rectangle" id="id226" transform="rotate(62.17311183267195) translate(273.68626891761386 -300.06429977955577)">
+            <rect x="-17.0" y="370.0" width="258.0" height="14.0"
+                latexdraw:borderPos="outer" stroke-width="2.0"
+                stroke="#666666" fill="#666666"/>
+        </g>
+        <g latexdraw:type="rectangle" id="id227" transform="rotate(62.160995998741086) translate(103.88332226852697 -434.3333196887537)">
+            <rect x="112.23279009890075" y="296.33763661334467"
+                width="392.208075951127" height="14.0"
+                latexdraw:borderPos="outer" stroke-width="2.0"
+                stroke="#666666" fill="#666666"/>
+        </g>
+        <g latexdraw:type="rectangle" id="id228" transform="rotate(13.957627840923736) translate(47.722208090562276 -86.1420981721655)">
+            <rect x="199.0" y="231.0" width="258.0" height="14.0"
+                latexdraw:borderPos="outer" stroke-width="2.0"
+                stroke="#666666" fill="#666666"/>
+        </g>
+        <g latexdraw:type="rectangle" id="id229" transform="rotate(62.17311183267195) translate(117.47954627945509 -219.1485728061952)">
+            <rect x="-6.0" y="200.0" width="258.0" height="14.0"
+                latexdraw:borderPos="outer" stroke-width="2.0"
+                stroke="#666666" fill="#666666"/>
+        </g>
+        <g latexdraw:type="rectangle" id="id230" transform="rotate(147.70793455748796) translate(-296.84969705102276 -307.93968727102924)">
+            <rect x="64.0" y="104.0" width="258.0" height="14.0"
+                latexdraw:borderPos="outer" stroke-width="2.0"
+                stroke="#666666" fill="#666666"/>
+        </g>
+        <g latexdraw:type="rectangle" id="id231" transform="rotate(13.957627840923736) translate(9.621463242278423 -73.3992054803913)">
+            <rect x="166.0" y="69.0" width="258.0" height="14.0"
+                latexdraw:borderPos="outer" stroke-width="2.0"
+                stroke="#666666" fill="#666666"/>
+        </g>
+    </g>
+    <metadata>
+        <latexdraw:metadata>
+            <latexdraw:displayBorders>true</latexdraw:displayBorders>
+            <latexdraw:autoAdjust>true</latexdraw:autoAdjust>
+            <latexdraw:ppc>50</latexdraw:ppc>
+            <latexdraw:zoom>1.0</latexdraw:zoom>
+            <latexdraw:unit>cm</latexdraw:unit>
+            <latexdraw:classicGrid>false</latexdraw:classicGrid>
+            <latexdraw:gridGap>10</latexdraw:gridGap>
+            <latexdraw:code>0</latexdraw:code>
+            <latexdraw:displayGrid>true</latexdraw:displayGrid>
+            <latexdraw:magneticGrid>false</latexdraw:magneticGrid>
+            <latexdraw:autoUpdate>true</latexdraw:autoUpdate>
+            <latexdraw:version>2.0.0</latexdraw:version>
+            <latexdraw:size>
+                <latexdraw:width>1703</latexdraw:width>
+                <latexdraw:height>1418</latexdraw:height>
+            </latexdraw:size>
+            <latexdraw:position>
+                <latexdraw:x>81</latexdraw:x>
+                <latexdraw:y>23</latexdraw:y>
+            </latexdraw:position>
+            <latexdraw:dividerPosition>0.7451556077510276</latexdraw:dividerPosition>
+            <latexdraw:displayCodePanel>true</latexdraw:displayCodePanel>
+            <latexdraw:displayXScale>true</latexdraw:displayXScale>
+            <latexdraw:displayYScale>true</latexdraw:displayYScale>
+            <latexdraw:delimitorOpacity>130</latexdraw:delimitorOpacity>
+        </latexdraw:metadata>
+    </metadata>
+</svg>

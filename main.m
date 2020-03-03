@@ -102,10 +102,17 @@ path(path,'iterative');
 
 %debugTest3;
 %debugPoint;
+
+
 %% Multiscale Preprocessador for MsRSB
  [ intRegion ,  boundRegion, GlobalBoundary, H, outSupport, ...
     coarseElemCenter,refCenterInCoaseElem, dictionary,edgesCoarseDict,coarseDiricht]   = preMsRB(npar,coarseneigh, centelem,coarseelem, ...
     coarseblockcenter,exinterface,multiCC);
+
+%% Alternative Multiscale Preprocessor 
+ [coarseElemCenter, coarse_interface_center, coarse_strips, boundRegion, bcoarse_strips] = alpreMsRB(npar,coarseneigh, centelem,coarseelem, ...
+    coarseblockcenter,exinterface,exinterfaceaxes, multiCC);
+
 %% superfolder maker
 itOn = 0;
 superFolderMK

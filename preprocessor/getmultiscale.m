@@ -132,7 +132,7 @@
 % intDist(i,j) - matrix the distance of interface of element I to element J
 % PS: intDist(3,4) represents the distance of the interface of element 3 and 4. 
 %--------------------------------------------------------------------------
-% intCoord - general matrix (x 6)
+% em te comer - general matrix (x 6)
 % [ coordX  coord Y TypeOfNode Flag1 Flag2 Flag 3]
 %
 %  Type of Node:                    Flag 1          Flag 2       Flag 3

@@ -35,9 +35,12 @@ meshplot(elem(boundRegion{ii},1:4), coord(:,1), coord(:,2),'color',colormat(6,:)
 %   for ii = 1:size(coarseelem{jj},2)
 %      meshplot(elem(coarseelem{jj}(ii),1:4), coord(:,1), coord(:,2),'color',colormat(9,:), 'LineWidth' , 2.1);
 %   end
-%   
-  
-  
+
+% all_strips = unique([bcoarse_strips{:}]);
+% 
+% % % %   
+% all_strips = unique([boundRegion{:}]);
+% meshplot(elem(all_strips,1:4), coord(:,1), coord(:,2),'color',colormat(8,:), 'LineWidth' , 2.1);  
   for ii = 1:npar
      meshplot(elem(coarseElemCenter(ii),1:4), coord(:,1), coord(:,2),'color',colormat(2,:), 'LineWidth' , 2.1);
   end

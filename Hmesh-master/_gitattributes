@@ -1,0 +1,3 @@
+$ cat .gitattributes
+*.msh linguist-language=Matlab
+*.geo linguist-language=Matlab
