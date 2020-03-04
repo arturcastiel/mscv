@@ -237,17 +237,16 @@ for ii = find(sum(coarseneigh(:,1:end-4)) >= 1)
     createPolygon(boundRegion{ii}, coarseElemCenter')
 end
 
-createPolygon(boundRegion{3}, coarseElemCenter')
+% createPolygon(boundRegion{2}, coarseElemCenter')
 %createPolygon(boundRegion{5}, find(coarseneigh(5,1:end-4)))
 
     
 end
 
 
-function [out] = createPolygon(vol, neighbor_centers)
+function [path] = createPolygon(vol, neighbor_centers)
     global inedge centelem
     all_vols = unique([vol, neighbor_centers]);
-    all_Vols = vol;
     ref = all(ismember(inedge(:,3:4), all_vols),2);
     
     g1 = inedge(ref,3);
@@ -256,8 +255,105 @@ function [out] = createPolygon(vol, neighbor_centers)
     target = 1:size(pos,1)
     transvec = zeros(size(centelem,1),1);
     transvec(pos) = target;
+    
+    transback = pos;
+    
     G = graph(transvec(g1),transvec(g2));
+    graphType = classifyGraph(G);
+    count_adj = sum(G.adjacency,2);
+    if graphType == 1
+        ref = find((count_adj == 1));
+        path =  shortestpath(G,ref(1), ref(2));
+    elseif graphType == 2
+     
+        
+       circleStrip(G)
+    elseif graphType == 3
+        3
+    elseif graphType == 4
+        4
+    elseif graphType == 5
+        findCircleStrip(G)
+    else
+        6
+    end
+    figure
     plot(G)
+    title(['Type Graph: ', num2str(graphType)])
+
+end
+
+
+function [out] = findCircleStrip(G)
+    nadj = sum(G.adjacency,2);
+    ref3 = find(nadj == 3);
+    ref2 = find(nadj == 2);
+    ref1 = find(nadj == 1);
+    
+    strips = cell(size(ref1,1),1) ;
+    
+    for ii = 1:size(ref1,1)
+        for jj = 1:size(ref1,1)
+            path = shortestpath(G, ref1(ii),ref3(jj));
+            if (size(path,2) <= size(strips{ii,1})) | (jj == 1)
+                strips{ii,1} = path;
+            end
+        end
+    end
+    strips
+    
+    remove_nodes = setdiff(union(strips{1}), ref3);
+    F = rmnode(G, remove_nodes)
+    
+end
+
+
+function [path] = circleStrip(G)
+    tedge = G.Edges(1,:);
+    tedge = tedge{:,:};
+    G = rmedge(G,tedge(1),tedge(2));
+    path =  shortestpath(G,tedge(1), tedge(2));
+end
+
+
+function[flag] = classifyGraph(G)
+    edges_count = full(sum(G.adjacency,2));
+    [a,b]= hist(edges_count,unique(edges_count));
+    n = size(G.Nodes,1);
+    n1 = 0;
+    n2 = 0;
+    n3 = 0;
+    n4 = 0;
+    for ii = 1:size(b,1)
+        if b(ii) == 1
+            n1 = a(ii); 
+        elseif b(ii) == 2
+            n2 = a(ii);
+        elseif b(ii) == 3
+            n3 = a(ii);
+        else
+            n4 = b(ii);
+        end
+    end
+        
+    if (n1 == 2) && (n2 == (n-2)) && (n3 == 0)  && (n4 == 0)
+    % linear graph
+        flag = 1;
+    elseif  (n1 == 0) && (n2 == n) && (n3 == 0)  && (n4 == 0) 
+    % circular graph
+        flag = 2;
+    elseif (n1 == 3) && (n2 == (n-4)) && (n3 == 1)  && (n4 == 0) 
+    % strip + linear
+        flag = 3;
+    elseif (n1 == 1) && (n2 == (n-2)) && (n3 == 1)  && (n4 == 0) 
+    % circular + strip
+        flag = 4;
+    elseif (n3 == n1) &&  (n2 ==  (n - 2*n1))
+    % raise error    
+        flag = 5;
+    else
+        flag = 6;
+    end
 
 end
 

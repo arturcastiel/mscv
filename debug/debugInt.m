@@ -1,5 +1,5 @@
 %ploting interaction region generated
- ii = 1;
+ ii = 6;
  jj = ii;
  
 %      1
@@ -40,6 +40,7 @@ meshplot(elem(boundRegion{ii},1:4), coord(:,1), coord(:,2),'color',colormat(6,:)
 % 
 % % % %   
 % all_strips = unique([boundRegion{:}]);
+
 % meshplot(elem(all_strips,1:4), coord(:,1), coord(:,2),'color',colormat(8,:), 'LineWidth' , 2.1);  
   for ii = 1:npar
      meshplot(elem(coarseElemCenter(ii),1:4), coord(:,1), coord(:,2),'color',colormat(2,:), 'LineWidth' , 2.1);
