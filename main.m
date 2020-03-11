@@ -28,7 +28,7 @@ global tol_c coord centelem elem esurn1 esurn2 nsurn1 nsurn2 bedge inedge ...
     intRegion   boundRegion GlobalBoundary H outSupport coarseElemCenter ...
     coarseningRatio wells mshfile edgesOnCoarseBoundary refCenterInCoaseElem ...
     dictionary edgesCoarseDict coarseDiricht intinterface pointloc regularEdges semiEdges ...
-    coarseedge strips
+    coarseedge polyReg cReg strips intRegion
 %% Tolerance Settings
 tol_c = 0.00001;
 
@@ -83,6 +83,8 @@ colormat = load('color.dat');
 %% Adds the path of SPE options
 path(path,'SPE');
 
+%% Adds the path  of the GrTheory library for graphs
+path(path,'GrTheory');
 
 
 %% Adds the path Post Multiscale treatments
@@ -103,14 +105,14 @@ path(path,'iterative');
 %debugTest3;
 %debugPoint;
 
-
+multiCC = 1;
 %% Multiscale Preprocessador for MsRSB
  [ intRegion ,  boundRegion, GlobalBoundary, H, outSupport, ...
     coarseElemCenter,refCenterInCoaseElem, dictionary,edgesCoarseDict,coarseDiricht]   = preMsRB(npar,coarseneigh, centelem,coarseelem, ...
     coarseblockcenter,exinterface,multiCC);
 
 %% Alternative Multiscale Preprocessor 
- [coarseElemCenter, coarse_interface_center, coarse_strips, boundRegion, bcoarse_strips] = alpreMsRB(npar,coarseneigh, centelem,coarseelem, ...
+ [coarseElemCenter, coarse_interface_center, coarse_strips, boundRegion, intRegion, GlobalBoundary, bcoarse_strips] = alpreMsRB(npar,coarseneigh, centelem,coarseelem, ...
     coarseblockcenter,exinterface,exinterfaceaxes, multiCC);
 
 %% superfolder maker

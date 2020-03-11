@@ -1,9 +1,9 @@
-function [ coarseElemCenter, coarse_interface_center, coarse_strips, boundRegion, bcoarse_strips] = alpreMsRB(npar,coarseneigh, centelem, ...
+function [ coarseElemCenter, coarse_interface_center, coarse_strips, boundRegion, intRegion, GlobalBoundary, bcoarse_strips] = alpreMsRB(npar,coarseneigh, centelem, ...
  coarseelem,coarseblockcenter,exinterface,exinterfaceaxes, multiCC)    
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 %finding neighbors 
-global intCoord elem coord inedge bedge esurn1 esurn2 elemloc edgesOnCoarseBoundary intinterface
+global intCoord elem coord inedge bedge esurn1 esurn2 elemloc edgesOnCoarseBoundary intinterface polyReg cReg
 
 
 
@@ -19,10 +19,6 @@ struct.RelTol = tol;
         coarseElemCenter(ii) = find(ref);
     end
     
-    
-
-    
-
 %% finding edge that represents the interface between two coarse volumes
     ref = intCoord(:, 3) == 2;
     points = intCoord(ref, 1:2);
@@ -93,8 +89,9 @@ struct.RelTol = tol;
     end    
 
 %% creat coarse path center-nodes boundary for those coarse cells located on the boundaries of the physical domain
-    boundaryTarget = zeros(npar,2);
+    boundaryTarget = zeros(npar,1);
     numBoundary = sum(coarseneigh(:,end-3:end), 2);
+    bedge_vol = unique(bedge(:,3));
     for ii = 1:npar
         if numBoundary(ii) == 1
             edges_ref = exinterface{ii};
@@ -102,75 +99,186 @@ struct.RelTol = tol;
             center_bedges =  0.5*(coord(edge_nodes(:,1),1:2) + coord(edge_nodes(:,2),1:2));
             average_point = mean(center_bedges);
             target_edge = minDis(average_point, center_bedges);
-            boundaryTarget(ii,1) = bedge(edges_ref(target_edge),3);     
+            boundaryTarget(ii) = bedge(edges_ref(target_edge),3);     
         elseif numBoundary(ii) == 2
-            ref =  find(coarseneigh(ii,end-3:end));
-            edge_ref1 = exinterfaceaxes{ii,ref(1)};
-            edge_ref2 = exinterfaceaxes{ii,ref(2)};
-            edge_nodes1 = bedge(edge_ref1,1:2);
-            edge_nodes2 = bedge(edge_ref2,1:2);
-            center_bedges1 =  0.5*(coord(edge_nodes1(:,1),1:2) + coord(edge_nodes1(:,2),1:2));
-            average_point1 = mean(center_bedges1);
-            center_bedges2 =  0.5*(coord(edge_nodes2(:,1),1:2) + coord(edge_nodes2(:,2),1:2));
-            average_point2 = mean(center_bedges2);            
-            target_edge1 = minDis(average_point1, center_bedges1);
-            target_edge2 = minDis(average_point2, center_bedges2);
-            boundaryTarget(ii,:) = [bedge(edge_ref1(target_edge1),3) , bedge(edge_ref2(target_edge2),3)];     
-    
-            
+            ref =  (intCoord(:,3) == 4) & (intCoord(:,4) == ii);
+            center = intCoord(ref,1:2);
+            center_bedges = centelem(bedge_vol,1:2);            
+            target_vol= minDis(center, center_bedges);
+            boundaryTarget(ii,:) = bedge_vol(target_vol);  
         end
-            
-        
     end
-    
 
     
-%% creating the mesh graph
+  %% creat coarse path center-nodes boundary for those coarse cells located on the boundaries of the physical domain
+%     boundaryTarget = zeros(npar,2);
+%     numBoundary = sum(coarseneigh(:,end-3:end), 2);
+%     for ii = 1:npar
+%         if numBoundary(ii) == 1
+%             edges_ref = exinterface{ii};
+%             edge_nodes = bedge(edges_ref,1:2);
+%             center_bedges =  0.5*(coord(edge_nodes(:,1),1:2) + coord(edge_nodes(:,2),1:2));
+%             average_point = mean(center_bedges);
+%             target_edge = minDis(average_point, center_bedges);
+%             boundaryTarget(ii,1) = bedge(edges_ref(target_edge),3);     
+%         elseif numBoundary(ii) == 2
+%             ref =  find(coarseneigh(ii,end-3:end));
+%             edge_ref1 = exinterfaceaxes{ii,ref(1)};
+%             edge_ref2 = exinterfaceaxes{ii,ref(2)};
+%             edge_nodes1 = bedge(edge_ref1,1:2);
+%             edge_nodes2 = bedge(edge_ref2,1:2);
+%             center_bedges1 =  0.5*(coord(edge_nodes1(:,1),1:2) + coord(edge_nodes1(:,2),1:2));
+%             average_point1 = mean(center_bedges1);
+%             center_bedges2 =  0.5*(coord(edge_nodes2(:,1),1:2) + coord(edge_nodes2(:,2),1:2));
+%             average_point2 = mean(center_bedges2);            
+%             target_edge1 = minDis(average_point1, center_bedges1);
+%             target_edge2 = minDis(average_point2, center_bedges2);
+%             boundaryTarget(ii,:) = [bedge(edge_ref1(target_edge1),3) , bedge(edge_ref2(target_edge2),3)];     
+%         end
+%     end  
+%     
+
+%% creating the distances between adjacencies elements    
     P1 = centelem(inedge(:, 3),1:2);
     P2 = centelem(inedge(:, 4),1:2);
     dist = vecnorm(P2-P1, 2, 2) ;
+
+
+%% increasing weights for strips on the edgesOnCoarseBoundary
+    vol_cb = unique(inedge(edgesOnCoarseBoundary,3:4));
+    bad_ref = any(ismember((inedge(:,3:4)), vol_cb),2);
+    %
+    
+%% creating the distances
     dist(:) = 1;
-    G = graph(inedge(:,3),inedge(:,4), dist);
+    dist_weight = dist;
+    
+    dist_weight(bad_ref) = 3000*dist(bad_ref);
+%     G = graph(inedge(:,3),inedge(:,4), dist_weight);
     %G = graph(inedge(:,3),inedge(:,4));
+
+    
+    
     
 %% finding the shortest path
     coarse_strips = cell(size(coarse_element_bridge,1),1);
+    half_strips = cell(size(coarse_element_bridge,1),2);
+    
+    for ii = 1:npar
+        for jj = 1:size(coarse_strips,1)
+        
+            flag = ismember(coarse_element_bridge(jj,:), ii);
+            if (flag(1) == 1)  | (flag(2) == 1)
+                center = coarseElemCenter(ii);
+                flag2 = (elemloc(coarse_element_target(jj,:))' == ii);
+                target = coarse_element_target(jj,flag2);
+                p1 = centelem(center,1:2);
+                p2 = centelem(target,1:2);                
+                easy_dist = all(ismember( inedge(:,3:4), find(lineCross(1:size(elem,1), p1,p2))),2);
+                ldist = dist;
+                ldist(easy_dist) = ldist(easy_dist) * 0.001;       
+                
+                lref = (elemloc == ii);
+                transvec = find(lref);
+                transback = zeros(size(elem,1),1);
+                transback(transvec) = 1:size(transvec,1);
+                edge_ref = all(ismember( inedge(:,3:4), transvec),2);
+                auxmat = transback(inedge(edge_ref,3:4));
+                G = graph(auxmat(:,1), auxmat(:,2), ldist(edge_ref));
+                path = shortestpath(G, transback(center), transback(target));
+                path = transvec(path);
+                half_strips{jj, flag} = path;
+            end
+            
+            
+            
+            
+            
+            
+            
+        end
+    end
     
     for ii = 1:size(coarse_strips,1)
-        center1 = coarseElemCenter(coarse_element_bridge(ii,1));
-        target1 = coarse_element_target(ii,1);
-        center2 = coarseElemCenter(coarse_element_bridge(ii,2));
-        target2 = coarse_element_target(ii,2);        
-        strip = union(shortestpath(G,center1,target1), shortestpath(G,center2,target2));
-        strip = setdiff(strip, [center1,center2]);
-        coarse_strips{ii} = strip;
+        coarse_strips{ii} = vertcat(half_strips{ii,:})';
     end
-  
-%% finding the shortest path for boundary elements
-    bcoarse_strips = cell(npar,2);
-    for ii = 1:npar
-        center = coarseElemCenter(ii);
-        strip = [];
-        if  numBoundary(ii) == 1
-           target1 = boundaryTarget(ii,1);
-           strip1 = shortestpath(G,center,target1);
-           strip1 = setdiff(strip1, center1);
-           strip = [strip1];
-           bcoarse_strips{ii,1} = strip;
-        elseif  numBoundary(ii) == 2
-           target1 = boundaryTarget(ii,1);
-           target2 = boundaryTarget(ii,2);
-           strip1 = shortestpath(G,center,target1);
-           strip2 = shortestpath(G,center,target2);
-           strip1 = setdiff(strip1, center);
-           strip2 = setdiff(strip2, center);
-           bcoarse_strips{ii,1} = strip1;
-           bcoarse_strips{ii,2} = strip2;
-        end
-                  
-    end
-
     
+%     for ii = 1:size(coarse_strips,1)
+%         center1 = coarseElemCenter(coarse_element_bridge(ii,1));
+%         target1 = coarse_element_target(ii,1);
+%         center2 = coarseElemCenter(coarse_element_bridge(ii,2));
+%         target2 = coarse_element_target(ii,2);        
+%         strip = union(shortestpath(G,center1,target1), shortestpath(G,center2,target2));
+%         strip = setdiff(strip, [center1,center2]);
+%         coarse_strips{ii} = strip;
+%     end
+      
+%% finding the shortest path
+%     coarse_strips = cell(size(coarse_element_bridge,1),1);
+%
+%     for ii = 1:size(coarse_strips,1)
+%         center1 = coarseElemCenter(coarse_element_bridge(ii,1));
+%         target1 = coarse_element_target(ii,1);
+%         center2 = coarseElemCenter(coarse_element_bridge(ii,2));
+%         target2 = coarse_element_target(ii,2);
+%         strip = union(shortestpath(G,center1,target1), shortestpath(G,center2,target2));
+%         strip = setdiff(strip, [center1,center2]);
+%         coarse_strips{ii} = strip;
+%     end
+
+%% finding the shortest path for boundary elements
+
+bcoarse_strips = cell(npar,1);
+if bcflag == 0
+    for ii = 1:npar
+        if numBoundary(ii) > 0
+            center = coarseElemCenter(ii);
+            target = boundaryTarget(ii);
+            p1 = centelem(center,1:2);
+            p2 = centelem(target,1:2);                
+            easy_dist = all(ismember( inedge(:,3:4), find(lineCross(1:size(elem,1), p1,p2))),2);
+            ldist = dist;
+            ldist(easy_dist) = ldist(easy_dist) * 0.001;       
+            lref = (elemloc == ii);
+            transvec = find(lref);
+            transback = zeros(size(elem,1),1);
+            transback(transvec) = 1:size(transvec,1);
+            edge_ref = all(ismember( inedge(:,3:4), transvec),2);
+            auxmat = transback(inedge(edge_ref,3:4));
+            G = graph(auxmat(:,1), auxmat(:,2), ldist(edge_ref));
+            path = shortestpath(G, transback(center), transback(target));
+            bcoarse_strips{ii}= transvec(path)';
+        end
+    end
+end
+
+1
+
+% if bcflag == 0
+%     bcoarse_strips = cell(npar,2);
+%     for ii = 1:npar
+%         center = coarseElemCenter(ii);
+%         strip = [];
+%         if  numBoundary(ii) == 1
+%             target1 = boundaryTarget(ii,1);
+%             strip1 = shortestpath(G,center,target1);
+%             strip1 = setdiff(strip1, center1);
+%             strip = [strip1];
+%             bcoarse_strips{ii,1} = strip;
+%         elseif  numBoundary(ii) == 2
+%             target1 = boundaryTarget(ii,1);
+%             target2 = boundaryTarget(ii,2);
+%             strip1 = shortestpath(G,center,target1);
+%             strip2 = shortestpath(G,center,target2);
+%             strip1 = setdiff(strip1, center);
+%             strip2 = setdiff(strip2, center);
+%             bcoarse_strips{ii,1} = strip1;
+%             bcoarse_strips{ii,2} = strip2;
+%         end
+%         
+%     end
+% end
+%     
  %% finding boundary regions
     boundRegion = cell(npar,1);
     coarse_brige =sort(coarse_element_bridge,2);
@@ -189,7 +297,7 @@ struct.RelTol = tol;
                 elseif sum(celsur_local_boundary(ff,:)) == 2
                     c1 = bcoarse_strips{celsur_local(ff),1};
                     c1 = centelem(c1 ,1:2);
-                    c2 = bcoarse_strips{celsur_local(ff),2};
+                    c2 = bcoarse_strips{celsur_local(ff),1};
                     c2 = centelem(c2, 1:2);
                     if sum(coarseneigh(ii,end-3:end)) == 1
                         ref = (intCoord(:,3) == 3) &  (intCoord(:,4) == ii);
@@ -204,7 +312,7 @@ struct.RelTol = tol;
                     if dis1 < dis2
                         boundRegion{ii} =  unique([boundRegion{ii}, bcoarse_strips{celsur_local(ff),1}]);
                     else
-                        boundRegion{ii} =  unique([boundRegion{ii}, bcoarse_strips{celsur_local(ff),2}]);
+                        boundRegion{ii} =  unique([boundRegion{ii}, bcoarse_strips{celsur_local(ff),1}]);
                     end
                     
                 end
@@ -214,104 +322,291 @@ struct.RelTol = tol;
             
         for jj = 1:size(cnpar,1)
             ref = ismember(coarse_brige, cnpar(jj,:), 'rows');
-            boundRegion{ii} = unique([boundRegion{ii}, coarse_strips{ref}]);
-%             if sum(celsur_local_boundary) == 1
-%                  boundRegion{ii} =  unique([boundRegion{ii}, bcoarse_strips{jj}]);
-%             end
-            
-            
+            boundRegion{ii} = unique([boundRegion{ii}, coarse_strips{ref}]); 
         end
     end
+      GlobalBoundary = false(size(elem,1),1);
+      ref = unique(horzcat(boundRegion{:}));
+      GlobalBoundary(ref) = true;
+      intRegion = [];
+    
 %     if bcflag == 0
 %          for ii =1:npar
 %              boundRegion{ii} = union(boundRegion{ii},  bcoarse_strips{ii})';             
 %          
 %          end
 %     end
-%% Creating inRegion
+% % % Creating interaction Region
+% % 
+% % intRegion = cell(npar,1);
+% % createPolygon(boundRegion{3}, coarseElemCenter')
+% % polyReg = cell(npar,1);
+% % cReg = cell(npar,1);
+% % 
+% % for ii = 1:npar
+% %     ncenter= coarseneigh(ii,1:end-4);
+% %     disp(['The graph type of' num2str(ii) ' is: '])
+% %     if ii == 15
+% %         1
+% %     end
+% %     [xv,yv, mpath] = createPolygon(boundRegion{ii}, coarseElemCenter(ncenter)', dist);
+% %     if sum(coarseneigh(ii,end-3:end)) == 2
+% %         ref = (intCoord(:,3) == 4) & (intCoord(:,4) == ii);
+% %         fix_point = intCoord(ref,1:2);
+% %         lflag = true;
+% %         xv = [xv; fix_point(1)];
+% %         yv = [yv; fix_point(2)];
+% %     end
+% %     polyReg{ii} = [[xv,yv]; [xv(1), yv(1)]];
+% %     polyReg{ii} = [xv,yv];
+% %     polyReg{ii} = [[xv,yv]; [xv(1), yv(1)]];
+% %     cReg{ii} = mpath;
+% % end
+% % 
+% % 
+% % 
+% % for ii = 1:npar
+% %     coarse_sul = union(ii,find(coarseneigh(ii,1:end-4)));
+% %     fine_test = ismember(elemloc,coarse_sul);
+% %     center = centelem(coarseElemCenter(ii), 1:2);
+% %     cflag = inpolygon(center(1), center(2), polyReg{ii}(:,1), polyReg{ii}(:,2));
+% %     ref =  inpolygon(centelem(fine_test,1), centelem(fine_test,2), polyReg{ii}(:,1), polyReg{ii}(:,2));
+% %     if cflag == 1
+% %         fine_test(fine_test) = ref;
+% %     else
+% %         fine_test(fine_test) = ~ref;
+% %     end
+% %     intRegion{ii} = find(fine_test);
+% %     
+% %     
+% % end
 
-intRegion = cell(npar,1);
-%createPolygon(boundRegion{5}, coarseElemCenter')
 
-% for ii = find(sum(coarseneigh(:,1:end-4)) >= 1)
-%     createPolygon(boundRegion{ii}, coarseElemCenter')
+
+end
+% for ii = 1:npar
+%     coarse_sul = union(ii,find(coarseneigh(ii,1:end-4)));
+%     fine_test = ismember(elemloc,coarse_sul);
+%     struct.Data =  polyReg{ii}(1:end-1,:);
+%     center = Weiszfeld(struct).xMedian;
+%     cflag = inpolygon(center(1), center(2), struct.Data(:,1), struct.Data(:,2)) ;
+%     ref =  inpolygon(centelem(fine_test,1), centelem(fine_test,2),struct.Data(:,1), struct.Data(:,2));
+%     if cflag == 1
+%         fine_test(fine_test) = ref;
+%     else
+%         fine_test(fine_test) = ~ref;
+%     end
+%     intRegion{ii} = find(fine_test);
 % end
-
-createPolygon(boundRegion{6}, coarseElemCenter')
-
+% 1
+%  ii = 6
+% polyReg{ii} = createPolygon(boundRegion{ii}, coarseElemCenter')
+%    [xv,yv, mpath] = createPolygon(boundRegion{ii}, coarseElemCenter');
+%    polyReg{ii} = [xv,yv];
+%    cReg{ii} = mpath;
 % createPolygon(boundRegion{2}, coarseElemCenter')
 %createPolygon(boundRegion{5}, find(coarseneigh(5,1:end-4)))
 
-    
+
+
+function [xv, yv] = smoothIt(x, y, corner_point, lflag)
+    if lflag == true
+         x = [x; corner_point(1)];
+         y = [y; corner_point(2)];
+    end
+    j = boundary(x,y,1);
+    hold on
+    scatter(x,y);
+    plot(x(j),y(j), 'LineWidth', 4);
+    xv = y(j);
+    yv = y(j);
 end
 
 
-function [path] = createPolygon(vol, neighbor_centers)
-    global inedge centelem strips
+
+function [xv,yv, path] = createPolygon(vol, neighbor_centers, dist)
+    global bedge inedge centelem strips
     all_vols = unique([vol, neighbor_centers]);
     ref = all(ismember(inedge(:,3:4), all_vols),2);
-    
     g1 = inedge(ref,3);
     g2 = inedge(ref,4);
-    pos = unique([g1,g2]) 
-    target = 1:size(pos,1)
+    weight = dist(ref);
+    pos = unique([g1,g2]);
+    target = 1:size(pos,1);
     transvec = zeros(size(centelem,1),1);
     transvec(pos) = target;
-    
     transback = pos;
+    G = graph(transvec(g1),transvec(g2), weight);
+    graphType = classifyGraph(G)
+    path = [];
     
-    G = graph(transvec(g1),transvec(g2));
-    graphType = classifyGraph(G);
-    count_adj = sum(G.adjacency,2);
-    if graphType == 1
-        ref = find((count_adj == 1));
-        path =  shortestpath(G,ref(1), ref(2));
-    elseif graphType == 2
-     
-        
-       circleStrip(G)
-    elseif graphType == 3
-        3
-    elseif graphType == 4
-        4
-    elseif graphType == 5
-        findCircleStrip(G)
-    else
-        6
+    fr = false;
+    
+    while fr == false
+        fr = true;
+        if graphType == 1
+            path =  shortestPathLine(G);
+        elseif graphType == 2
+            path = circleStrip(G);
+            
+        elseif graphType == 3
+            belements = unique(bedge(:,3));
+            strips = multiStrip(G);
+            path_in_boundary = false(size(strips,1),1);
+            m = size(strips,1);
+            for ii= 1:m
+                if ismember(transback(strips{ii}), belements) == 0
+                    path_in_boundary(ii) = true;
+                end
+            end
+            center = strips{1};
+            remove_nodes = [];
+            for jj = 1:m
+                center = intersect(center, strips{jj});
+                if path_in_boundary(jj) == true
+                    remove_nodes = union(remove_nodes, strips{jj});
+                end
+            end
+            remove_nodes = setdiff(remove_nodes, center);
+            F = rmnode(G, remove_nodes);
+            transback_local = setdiff(1:max(size(G.adjacency)), remove_nodes);
+            path = transback_local(shortestPathLine(F));            
+        elseif graphType == 6
+           path = findLongest(G);
+        elseif (graphType == 4) | (graphType == 5) 
+           [F, transback_local] = findCircleStrip(G);
+            path = transback_local(circleStrip(findCircleStrip(G)));
+        else
+            G = findsmallCircles(G);
+            fr = false;
+            graphType = classifyGraph(G);
+            disp(['Solving unclassified graph'])
+        end
+    
     end
-    figure
-    strips{1} = transback(strips{1});
-    strips{2} = transback(strips{2});
-
-    
-    plot(G)
-    title(['Type Graph: ', num2str(graphType)])
+    path = transback(path);
+%     auxvec = [centelem(path, 1:2) ; centelem(path(1), 1:2)]; 
+%     xv = auxvec(:,1);
+%     yv = auxvec(:,2);
+    xv = centelem(path, 1);
+    yv = centelem(path, 2);
 
 end
 
 
-function [out] = findCircleStrip(G)
-    global strips
+function [path_ac] = findLongest(G)
     nadj = sum(G.adjacency,2);
-    ref3 = find(nadj == 3);
-    ref2 = find(nadj == 2);
-    ref1 = find(nadj == 1);
-    
-    strips = cell(size(ref1,1),1) ;
-    
-    for ii = 1:size(ref1,1)
-        for jj = 1:size(ref1,1)
-            path = shortestpath(G, ref1(ii),ref3(jj));
-            if (size(path,2) <= size(strips{ii,1})) | (jj == 1)
-                strips{ii,1} = path;
+    ref = find((nadj == 1));
+    path_ac = [];
+    for ii = 1: size(ref,1)
+        for jj = (ii+1):size(ref,1)
+            start = ref(ii);
+            target = ref(jj);
+            path = shortestpath(G,start,target);
+            if  size(path,2) > size(path_ac,2)
+                path_ac = path;
             end
         end
     end
-    out = strips
+end
+
+
+function [H] = cycleSearch(G)
+    edges = table2array(G.Edges);   
+    p = grCycleBasis(edges);
+end
+
+% 
+% function [xv, yv] = somoothPolygon(x,y  neigh_centers, corner_point, lflag)
+% %     if lflag == true
+% %          x = [x; corner_point(1)];
+% %          y = [y; corner_point(2)];
+% %     end
+% %     j = boundary(x,y,f);
+% %     hold on
+% %     scatter(x,y);
+% %     plot(x(j),y(j), 'LineWidth', 4);
+% %     xv = y(j);
+% %     yv = y(j);
+
+function [H] = findsmallCircles(G)
+    adj = G.adjacency;
+    edj = table2array(G.Edges);
+    edj = edj(:,1:2);
     
-    remove_nodes = setdiff(strips{2}, ref3);
-    F = rmnode(G, remove_nodes)
-   
+    nadj = sum(G.adjacency,2);
+    n1 = find(nadj == 1);
+    n2 = find(nadj == 2); 
+    n3 = find(nadj == 3);
+    n4 = find(nadj == 4);
+    edj_ref = [];
+    target = [];
+    for ii=1:size(n3,1)
+       for jj = (ii+1):size(n3,1)
+            if adj(n3(ii), n3(jj)) == 1
+                ref = all(ismember(edj, [n3(ii), n3(jj)]),2);
+                edj_ref = [edj_ref; find(ref)];
+                target = [target;  [n3(ii), n3(jj)]];
+            end
+        end
+    end
+    flag = false(size(edj_ref));
+    for ii = 1:size(edj_ref,1)
+        F = rmedge(G, edj_ref(ii));
+        path = shortestpath(F, target(ii,1), target(ii,2), 'Method','unweighted');
+        ledge = table2array(F.Edges);
+        ledge = ledge(:,1:2);
+        ref = any(ismember(ledge,setdiff(path,target(ii, :))),2);        
+        ref(ref) = ~any(ismember(ledge(ref,:), path),2);
+        H = rmedge(F, find(ref));
+        path_new = shortestpath(H, target(ii,1), target(ii,2), 'Method','unweighted');
+        if all(path == path_new)
+            flag(ii) = true;
+        end
+    end
+    H = rmedge(G, edj_ref(flag)); 
+end
+
+function [path] = shortestPathLine(G)
+    count_adj = sum(G.adjacency,2);
+    ref = find((count_adj == 1));
+    path =  shortestpath(G,ref(1), ref(2));    
+end
+
+
+function [F, transback_local] = findCircleStrip(G)
+    nadj = sum(G.adjacency,2);
+    ref3 = find(nadj == 3);
+    ref1 = find(nadj == 1);
+    strips = cell(size(ref1,1),1) ;
+    tpsize = 10^10*ones(size(ref1,1),1);
+    for ii = 1:size(ref1,1)
+        for jj = 1:size(ref1,1)
+            path = shortestpath(G, ref1(ii),ref3(jj));
+            if size(path,2) <= tpsize(ii)
+                strips{ii,1} = setdiff(path, ref3);
+                tpsize(ii) = size(path,2);
+            end
+        end        
+    end
+    remove_nodes = setdiff(union([strips{:}], []), ref3);
+    transback_local = setdiff(1:max(size(G.adjacency)), remove_nodes);
+    
+%     del_edges = any(ismember(table2array(G.Edges), remove_nodes),2);
+    % F = rmedge(G,find(del_edges));
+    F= rmnode(G, remove_nodes);
+end
+
+function [strips] = multiStrip(G)
+    ref = sum(G.adjacency,2);
+    m = max(ref);
+    center = find(ref == m);
+    edges_ends = find(ref == 1);
+    strips = cell(m,1);
+    for ii = 1:m
+       path =  shortestpath(G,center, edges_ends(ii));
+       strips{ii} = path;
+    end    
 end
 
 
@@ -331,7 +626,8 @@ function[flag] = classifyGraph(G)
     n2 = 0;
     n3 = 0;
     n4 = 0;
-    for ii = 1:size(b,1)
+    s = max(size(b));
+    for ii = 1:s
         if b(ii) == 1
             n1 = a(ii); 
         elseif b(ii) == 2
@@ -339,7 +635,7 @@ function[flag] = classifyGraph(G)
         elseif b(ii) == 3
             n3 = a(ii);
         else
-            n4 = b(ii);
+            n4 = a(ii);
         end
     end
         
@@ -356,10 +652,14 @@ function[flag] = classifyGraph(G)
     % circular + strip
         flag = 4;
     elseif (n3 == n1) &&  (n2 ==  (n - 2*n1))
-    % raise error    
         flag = 5;
+    elseif (n1 == 2 + n3 ) &&  (n2 ==  (n - 2*n3 - 2))
+        flag = 6; 
+    
     else
-        flag = 6;
+        % raise error    
+
+        flag = 7;
     end
 
 end

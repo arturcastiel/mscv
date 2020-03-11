@@ -1,5 +1,5 @@
 %ploting interaction region generated
- ii = 6;
+ ii = 2;
  jj = ii;
  
 %      1
@@ -20,7 +20,7 @@ colormat = load('color.dat');
 %triangulation
 %triplot(intDel{ii,1}, intDel{ii,2}(:,1) ,intDel{ii,2}(:,2), 'color', colormat(9,:), 'LineWidth' , 1.9)
 
-%meshplot(elem(intRegion{ii},1:4),coord(:,1),coord(:,2),'color', colormat(8,:), 'LineWidth' , 2.2);
+meshplot(elem(intRegion{ii},1:4),coord(:,1),coord(:,2),'color', colormat(8,:), 'LineWidth' , 2.2);
 %meshplot(elem(GlobalBoundary,1:4), coord(:,1), coord(:,2),'color',colormat(88,:), 'LineWidth' , 1.7);
 %meshplot(elem(H{ii},1:4), coord(:,1), coord(:,2),'color',colormat(14,:), 'LineWidth' , 1.7);
 
@@ -38,9 +38,9 @@ meshplot(elem(boundRegion{ii},1:4), coord(:,1), coord(:,2),'color',colormat(6,:)
 
 % all_strips = unique([bcoarse_strips{:}]);
 % 
-% % % %   
+%   
 % all_strips = unique([boundRegion{:}]);
-
+% 
 % meshplot(elem(all_strips,1:4), coord(:,1), coord(:,2),'color',colormat(8,:), 'LineWidth' , 2.1);  
   for ii = 1:npar
      meshplot(elem(coarseElemCenter(ii),1:4), coord(:,1), coord(:,2),'color',colormat(2,:), 'LineWidth' , 2.1);

@@ -6,8 +6,9 @@ LengY = PPP(2);
 %% config aqui
 %6 e 17
 numX = 6;
-numY = 8;
-
+numY = 6;
+% 6 8 e 3
+% 5 5 1
 % for a hexagonal mesh
 Side = 0.125/2;
 
@@ -92,8 +93,8 @@ end
 
 %running tests on cool meshes
 
-listTest1 = drawSquare(0.5,0.5,0.3,0.3,45,4000,2);
-listTest2 = drawSquare(0.5,0.5,0.1,0.1,-45,4000,2);
+listTest1 = drawSquare(0,0, 0.35, 0.45,0,4000,1);
+%listTest2 = drawSquare(0.5,0.5,0.1,0.1,-45,4000,2);
 
 %listTest2 = drawSquare(0.5,0.5,0.4,0.4,45,4000,2);
 
@@ -105,7 +106,7 @@ listTest2 = drawSquare(0.5,0.5,0.1,0.1,-45,4000,2);
 %npar esta calculado errado
 
 
-elemloc = isBar(centelem(:,1),centelem(:,2),listas{:});%,listTest1);%,listTest1);%;,listas{:},listTest1);%,listTest1)%,listTest1,listTest2); % ,listTest1,listTest2);%,listTest1);%,listTest1)%,listTest2,listTest3,listTest4);
+elemloc = isBar(centelem(:,1),centelem(:,2),listas{:});% ,listTest1);%,listTest1);%;,listas{:},listTest1);%,listTest1)%,listTest1,listTest2); % ,listTest1,listTest2);%,listTest1);%,listTest1)%,listTest2,listTest3,listTest4);
 elemloc = fixNumb(elemloc);
 
 npar = max(elemloc);
