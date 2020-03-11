@@ -110,33 +110,6 @@ struct.RelTol = tol;
     end
 
     
-  %% creat coarse path center-nodes boundary for those coarse cells located on the boundaries of the physical domain
-%     boundaryTarget = zeros(npar,2);
-%     numBoundary = sum(coarseneigh(:,end-3:end), 2);
-%     for ii = 1:npar
-%         if numBoundary(ii) == 1
-%             edges_ref = exinterface{ii};
-%             edge_nodes = bedge(edges_ref,1:2);
-%             center_bedges =  0.5*(coord(edge_nodes(:,1),1:2) + coord(edge_nodes(:,2),1:2));
-%             average_point = mean(center_bedges);
-%             target_edge = minDis(average_point, center_bedges);
-%             boundaryTarget(ii,1) = bedge(edges_ref(target_edge),3);     
-%         elseif numBoundary(ii) == 2
-%             ref =  find(coarseneigh(ii,end-3:end));
-%             edge_ref1 = exinterfaceaxes{ii,ref(1)};
-%             edge_ref2 = exinterfaceaxes{ii,ref(2)};
-%             edge_nodes1 = bedge(edge_ref1,1:2);
-%             edge_nodes2 = bedge(edge_ref2,1:2);
-%             center_bedges1 =  0.5*(coord(edge_nodes1(:,1),1:2) + coord(edge_nodes1(:,2),1:2));
-%             average_point1 = mean(center_bedges1);
-%             center_bedges2 =  0.5*(coord(edge_nodes2(:,1),1:2) + coord(edge_nodes2(:,2),1:2));
-%             average_point2 = mean(center_bedges2);            
-%             target_edge1 = minDis(average_point1, center_bedges1);
-%             target_edge2 = minDis(average_point2, center_bedges2);
-%             boundaryTarget(ii,:) = [bedge(edge_ref1(target_edge1),3) , bedge(edge_ref2(target_edge2),3)];     
-%         end
-%     end  
-%     
 
 %% creating the distances between adjacencies elements    
     P1 = centelem(inedge(:, 3),1:2);
@@ -188,14 +161,7 @@ struct.RelTol = tol;
                 path = shortestpath(G, transback(center), transback(target));
                 path = transvec(path);
                 half_strips{jj, flag} = path;
-            end
-            
-            
-            
-            
-            
-            
-            
+            end         
         end
     end
     
@@ -203,28 +169,6 @@ struct.RelTol = tol;
         coarse_strips{ii} = vertcat(half_strips{ii,:})';
     end
     
-%     for ii = 1:size(coarse_strips,1)
-%         center1 = coarseElemCenter(coarse_element_bridge(ii,1));
-%         target1 = coarse_element_target(ii,1);
-%         center2 = coarseElemCenter(coarse_element_bridge(ii,2));
-%         target2 = coarse_element_target(ii,2);        
-%         strip = union(shortestpath(G,center1,target1), shortestpath(G,center2,target2));
-%         strip = setdiff(strip, [center1,center2]);
-%         coarse_strips{ii} = strip;
-%     end
-      
-%% finding the shortest path
-%     coarse_strips = cell(size(coarse_element_bridge,1),1);
-%
-%     for ii = 1:size(coarse_strips,1)
-%         center1 = coarseElemCenter(coarse_element_bridge(ii,1));
-%         target1 = coarse_element_target(ii,1);
-%         center2 = coarseElemCenter(coarse_element_bridge(ii,2));
-%         target2 = coarse_element_target(ii,2);
-%         strip = union(shortestpath(G,center1,target1), shortestpath(G,center2,target2));
-%         strip = setdiff(strip, [center1,center2]);
-%         coarse_strips{ii} = strip;
-%     end
 
 %% finding the shortest path for boundary elements
 
@@ -252,7 +196,7 @@ if bcflag == 0
     end
 end
 
-1
+
 
 % if bcflag == 0
 %     bcoarse_strips = cell(npar,2);
@@ -281,145 +225,73 @@ end
 %     
  %% finding boundary regions
     boundRegion = cell(npar,1);
-    coarse_brige =sort(coarse_element_bridge,2);
+    coarse_brige = sort(coarse_element_bridge,2);
     for ii=1:npar
         celsur = find(coarseneigh(ii,1:npar));
         cnpar = [];
         for jj = celsur
             celsur_local = intersect(celsur, find(coarseneigh(jj,1:npar)));
+            
             celsur_local_boundary =  coarseneigh(celsur_local, end-3:end);
-
+            cf =  any(coarseneigh(ii, end-3:end));
             all_par = sort([jj * ones(size(celsur_local))' , celsur_local'], 2);
             cnpar = unique([cnpar; all_par], 'rows');
             for ff = 1:size(celsur_local_boundary,1)
-                if sum(celsur_local_boundary(ff,:)) == 1
+                if (sum(celsur_local_boundary(ff,:)) > 0) & (cf == 1)
                      boundRegion{ii} =  unique([boundRegion{ii}, bcoarse_strips{celsur_local(ff),1}]);
-                elseif sum(celsur_local_boundary(ff,:)) == 2
-                    c1 = bcoarse_strips{celsur_local(ff),1};
-                    c1 = centelem(c1 ,1:2);
-                    c2 = bcoarse_strips{celsur_local(ff),1};
-                    c2 = centelem(c2, 1:2);
-                    if sum(coarseneigh(ii,end-3:end)) == 1
-                        ref = (intCoord(:,3) == 3) &  (intCoord(:,4) == ii);
-                        center = intCoord(ref,1:2);
-                    else
-                        center = centelem(coarseElemCenter(ii),1:end-1); 
-                    end
-                    repcenter1 = repmat(center, size(c1,1),1);
-                    repcenter2 = repmat(center, size(c2,1),1);
-                    dis1 = mean(vecnorm(repcenter1 - c1,2,2));
-                    dis2 = mean(vecnorm(repcenter2 - c2,2,2));
-                    if dis1 < dis2
-                        boundRegion{ii} =  unique([boundRegion{ii}, bcoarse_strips{celsur_local(ff),1}]);
-                    else
-                        boundRegion{ii} =  unique([boundRegion{ii}, bcoarse_strips{celsur_local(ff),1}]);
-                    end
-                    
                 end
-            end
-            
-        end
-            
+            end            
+        end            
         for jj = 1:size(cnpar,1)
             ref = ismember(coarse_brige, cnpar(jj,:), 'rows');
             boundRegion{ii} = unique([boundRegion{ii}, coarse_strips{ref}]); 
         end
     end
-      GlobalBoundary = false(size(elem,1),1);
-      ref = unique(horzcat(boundRegion{:}));
-      GlobalBoundary(ref) = true;
+    
+    
+
       intRegion = [];
     
-%     if bcflag == 0
-%          for ii =1:npar
-%              boundRegion{ii} = union(boundRegion{ii},  bcoarse_strips{ii})';             
-%          
-%          end
-%     end
-% % % Creating interaction Region
-% % 
-% % intRegion = cell(npar,1);
-% % createPolygon(boundRegion{3}, coarseElemCenter')
-% % polyReg = cell(npar,1);
-% % cReg = cell(npar,1);
-% % 
-% % for ii = 1:npar
-% %     ncenter= coarseneigh(ii,1:end-4);
-% %     disp(['The graph type of' num2str(ii) ' is: '])
-% %     if ii == 15
-% %         1
-% %     end
-% %     [xv,yv, mpath] = createPolygon(boundRegion{ii}, coarseElemCenter(ncenter)', dist);
-% %     if sum(coarseneigh(ii,end-3:end)) == 2
-% %         ref = (intCoord(:,3) == 4) & (intCoord(:,4) == ii);
-% %         fix_point = intCoord(ref,1:2);
-% %         lflag = true;
-% %         xv = [xv; fix_point(1)];
-% %         yv = [yv; fix_point(2)];
-% %     end
-% %     polyReg{ii} = [[xv,yv]; [xv(1), yv(1)]];
-% %     polyReg{ii} = [xv,yv];
-% %     polyReg{ii} = [[xv,yv]; [xv(1), yv(1)]];
-% %     cReg{ii} = mpath;
-% % end
-% % 
-% % 
-% % 
-% % for ii = 1:npar
-% %     coarse_sul = union(ii,find(coarseneigh(ii,1:end-4)));
-% %     fine_test = ismember(elemloc,coarse_sul);
-% %     center = centelem(coarseElemCenter(ii), 1:2);
-% %     cflag = inpolygon(center(1), center(2), polyReg{ii}(:,1), polyReg{ii}(:,2));
-% %     ref =  inpolygon(centelem(fine_test,1), centelem(fine_test,2), polyReg{ii}(:,1), polyReg{ii}(:,2));
-% %     if cflag == 1
-% %         fine_test(fine_test) = ref;
-% %     else
-% %         fine_test(fine_test) = ~ref;
-% %     end
-% %     intRegion{ii} = find(fine_test);
-% %     
-% %     
-% % end
+% % % %     if bcflag == 0
+% % % %          for ii =1:npar
+% % % %              boundRegion{ii} = union(boundRegion{ii},  bcoarse_strips{ii})';             
+% % % %          
+% % % %          end
+% % % %     end
+%% Creating interaction Region
+
+intRegion = cell(npar,1);
+
+polyReg = cell(npar,1);
+cReg = cell(npar,1);
 
 
-
+for ii = 1:npar
+    all_el = union(find(coarseneigh(ii, 1:npar)), ii);
+    cand_el = ismember(elemloc,all_el);
+    cand_el(boundRegion{ii}) = false;
+    ref = all(ismember(inedge(:,3:4), find(cand_el)),2);
+    auxmat = inedge(ref,3:4);
+    transvec = unique(auxmat);
+    transback = zeros(size(elem,1),1);
+    transback(transvec) = 1:size(transvec,1);
+    auxmat = transback(auxmat);
+    G = graph(auxmat(:,1), auxmat(:,2));
+    con_comp = conncomp(G);
+    ref_el = (con_comp == con_comp(transback(coarseElemCenter(ii))));
+    intRegion{ii} = transvec((ref_el));
 end
-% for ii = 1:npar
-%     coarse_sul = union(ii,find(coarseneigh(ii,1:end-4)));
-%     fine_test = ismember(elemloc,coarse_sul);
-%     struct.Data =  polyReg{ii}(1:end-1,:);
-%     center = Weiszfeld(struct).xMedian;
-%     cflag = inpolygon(center(1), center(2), struct.Data(:,1), struct.Data(:,2)) ;
-%     ref =  inpolygon(centelem(fine_test,1), centelem(fine_test,2),struct.Data(:,1), struct.Data(:,2));
-%     if cflag == 1
-%         fine_test(fine_test) = ref;
-%     else
-%         fine_test(fine_test) = ~ref;
-%     end
-%     intRegion{ii} = find(fine_test);
-% end
-% 1
-%  ii = 6
-% polyReg{ii} = createPolygon(boundRegion{ii}, coarseElemCenter')
-%    [xv,yv, mpath] = createPolygon(boundRegion{ii}, coarseElemCenter');
-%    polyReg{ii} = [xv,yv];
-%    cReg{ii} = mpath;
-% createPolygon(boundRegion{2}, coarseElemCenter')
-%createPolygon(boundRegion{5}, find(coarseneigh(5,1:end-4)))
 
 
+for ii = 1:npar
+    boundRegion{ii} = setdiff(boundRegion{ii}, coarseElemCenter);
+end
 
-function [xv, yv] = smoothIt(x, y, corner_point, lflag)
-    if lflag == true
-         x = [x; corner_point(1)];
-         y = [y; corner_point(2)];
-    end
-    j = boundary(x,y,1);
-    hold on
-    scatter(x,y);
-    plot(x(j),y(j), 'LineWidth', 4);
-    xv = y(j);
-    yv = y(j);
+GlobalBoundary = false(size(elem,1),1);
+ref = unique(horzcat(boundRegion{:}));
+GlobalBoundary(ref) = true;
+
+
 end
 
 
@@ -480,7 +352,7 @@ function [xv,yv, path] = createPolygon(vol, neighbor_centers, dist)
             G = findsmallCircles(G);
             fr = false;
             graphType = classifyGraph(G);
-            disp(['Solving unclassified graph'])
+            %disp(['Solving unclassified graph'])
         end
     
     end
